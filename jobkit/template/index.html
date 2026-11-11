@@ -1,0 +1,249 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Internship seeking</title>
+<link rel="icon" href="assets/intern.ico" sizes="any">
+<link rel="apple-touch-icon" href="assets/intern.ico">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <img class="brand-mark" src="assets/briefcase.png" alt="Internship seeking" width="34" height="34">
+      <div class="brand-text">
+        <h1>Internship seeking</h1>
+        <p>海外业务与战略实习库</p>
+      </div>
+    </div>
+
+    <nav class="tabs" id="tabs">
+      <button class="tab active" data-view="library">岗位库 <span class="tab-count" id="tabCountLibrary">0</span></button>
+      <button class="tab" data-view="tracker">我的申请 <span class="tab-count" id="tabCountTracker">0</span></button>
+      <button class="tab" data-view="pending">待核实 <span class="tab-count" id="tabCountPending">0</span></button>
+      <button class="tab" data-view="live">更新追踪 <span class="tab-count" id="tabCountLive" style="display:none"></span></button>
+      <button class="tab" data-view="experience">经历素材 <span class="tab-count" id="tabCountExp">0</span></button>
+      <button class="tab" data-view="method">研究说明</button>
+    </nav>
+
+    <div class="topbar-right">
+      <div class="search-box">
+        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" d="M10.5 18a7.5 7.5 0 1 0 0-15 7.5 7.5 0 0 0 0 15Zm4.5 -1.5L20 21"/></svg>
+        <input type="search" id="searchInput" placeholder="搜索公司、岗位、职责关键词…" autocomplete="off">
+      </div>
+      <div class="verified-chip" id="verifiedChip">最后核实 2026-11-11</div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- ===== Library view ===== -->
+  <section id="view-library" class="view active">
+    <div class="freshness" id="freshness"></div>
+    <div class="stats" id="stats"></div>
+
+    <div class="layout">
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-head">
+          <span>筛选条件</span>
+          <button class="link-btn" id="resetFilters">重置</button>
+        </div>
+        <div id="filterGroups"></div>
+        <div class="sidebar-foot">
+          <button class="link-btn" id="togglePendingInline">显示平台在架岗位</button>
+          <p class="hint">平台在架 = 第三方平台具体职位页可投，但企业官方渠道未单独核实。</p>
+        </div>
+      </aside>
+
+      <section class="results">
+        <div class="toolbar">
+          <div class="toolbar-left">
+            <button class="icon-btn only-mobile" id="openFilters" aria-label="打开筛选">☰</button>
+            <div class="seg" id="scopeSeg">
+              <button data-scope="official" class="active">官方确认 <span id="segOfficial">0</span></button>
+              <button data-scope="all">全部岗位 <span id="segAll">0</span></button>
+            </div>
+            <span class="result-count" id="resultCount">0 个岗位</span>
+            <span class="active-filters" id="activeFilters"></span>
+          </div>
+          <div class="toolbar-right">
+            <label class="sort-label">排序
+              <select id="sortSelect">
+                <option value="score">匹配分数（高→低）</option>
+                <option value="deadline">截止日期（近→远）</option>
+                <option value="posted">发布时间（新→旧）</option>
+                <option value="company">公司名称（A→Z）</option>
+              </select>
+            </label>
+            <div class="export-wrap">
+              <button class="btn ghost" id="exportBtn">导出 ▾</button>
+              <div class="export-menu" id="exportMenu">
+                <button data-export="json">岗位数据 JSON</button>
+                <button data-export="csv">岗位数据 CSV</button>
+                <button data-export="tracker-json">我的申请 JSON</button>
+                <button data-export="tracker-csv">我的申请 CSV</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="cards" id="jobList"></div>
+        <div class="empty" id="emptyState" hidden>
+          <p class="empty-title">没有符合条件的岗位</p>
+          <p>尝试放宽筛选条件，或清空关键词。</p>
+          <button class="btn" id="emptyReset">清空全部筛选</button>
+        </div>
+      </section>
+    </div>
+  </section>
+
+  <!-- ===== Tracker view ===== -->
+  <section id="view-tracker" class="view">
+    <div class="tracker-head">
+      <div>
+        <h2>我的申请管理</h2>
+        <p class="muted">收藏、状态、备注与日期均保存在本浏览器（localStorage），不会上传。</p>
+      </div>
+      <div class="tracker-actions">
+        <button class="btn ghost" id="trackerExport">导出进度</button>
+        <button class="btn ghost danger" id="clearTracker">清空全部记录</button>
+      </div>
+    </div>
+    <div class="tracker-stats" id="trackerStats"></div>
+    <div class="tracker-table-wrap">
+      <table class="tracker-table" id="trackerTable">
+        <thead>
+          <tr>
+            <th>公司 / 岗位</th><th>优先级</th><th>分数</th><th>状态</th>
+            <th>投递日期</th><th>跟进日期</th><th>备注</th><th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="trackerBody"></tbody>
+      </table>
+      <div class="empty" id="trackerEmpty" hidden>
+        <p class="empty-title">还没有任何申请记录</p>
+        <p>在岗位库中点击 ☆ 收藏，或打开岗位详情修改申请状态。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Pending view ===== -->
+  <section id="view-pending" class="view">
+    <div class="pending-head">
+      <h2>待核实机会</h2>
+      <p class="muted">以下岗位的<b>具体职位页仍在架、可进入投递</b>，但仅能在第三方平台（实习僧 / 猎聘 / 聚合站 / MCF 以外的转载）核实，企业官方招聘系统未单独确认。投递前请以官方渠道二次核对。已过期或页面关闭的岗位不会出现在这里。</p>
+    </div>
+    <div class="cards" id="pendingList"></div>
+    <div class="empty" id="pendingEmpty" hidden>
+      <p class="empty-title">暂无待核实岗位</p>
+    </div>
+  </section>
+
+  <!-- ===== Live tracking view ===== -->
+  <section id="view-live" class="view">
+    <div class="live-head">
+      <div>
+        <h2>更新追踪</h2>
+        <p>每天运行 <code>python tools/daily_check.py</code>，会逐条打开岗位页面或调用官方接口，确认是否仍在架、截止日期是否变化，并把结果记在这里。超过 24 小时未更新时，页面顶部会给出提示。</p>
+      </div>
+      <div class="live-stamp" id="liveStamp"></div>
+    </div>
+    <div class="live-stats" id="liveStats"></div>
+    <div class="live-grid">
+      <div class="live-panel">
+        <h3>最近变化</h3>
+        <div id="liveChanges"></div>
+      </div>
+      <div class="live-panel">
+        <h3>近 14 天在架岗位数</h3>
+        <div id="liveHistory"></div>
+      </div>
+    </div>
+    <div class="live-panel">
+      <h3>逐条核查状态</h3>
+      <div style="overflow-x:auto">
+        <table class="live-table">
+          <thead>
+            <tr><th>公司 / 岗位</th><th>分类</th><th>状态</th><th>最近核查</th><th>距截止</th><th>核查说明</th></tr>
+          </thead>
+          <tbody id="liveBody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="live-howto" id="liveHowto"></div>
+  </section>
+
+  <!-- ===== Experience library view ===== -->
+  <section id="view-experience" class="view">
+    <div class="exp-head">
+      <div>
+        <h2>经历素材库</h2>
+        <p>把简历拆成可复用的事件，用关键词索引。打开任意岗位，右侧抽屉里可以查看自动匹配的经历。</p>
+      </div>
+      <div class="exp-tools">
+        <input id="expSearch" type="search" placeholder="搜索：越南、内参、数据、AI…" autocomplete="off">
+        <span class="exp-count" id="expCount"></span>
+      </div>
+    </div>
+    <div class="exp-profile" id="expProfile"></div>
+    <div class="exp-filters" id="expFilters">
+      <button class="active" data-type="全部">全部</button>
+      <button data-type="实习">实习</button>
+      <button data-type="研究">研究</button>
+      <button data-type="国际经历">国际经历</button>
+      <button data-type="教育">教育</button>
+    </div>
+    <div class="graph-panel">
+      <div class="graph-head">
+        <div>
+          <h3>关键词连接图</h3>
+          <p>内圈编号是经历，外圈是按关键词归并出的主题，连线表示这段经历属于该主题。悬停可高亮关联项，点击编号跳到下方卡片。</p>
+        </div>
+        <div class="graph-legend">
+          <span><i class="lg lg-int"></i>实习</span>
+          <span><i class="lg lg-res"></i>研究</span>
+          <span><i class="lg lg-intl"></i>国际经历</span>
+          <span><i class="lg lg-edu"></i>教育</span>
+        </div>
+      </div>
+      <div class="graph-scroll">
+        <svg id="expGraph" viewBox="0 0 1000 640" role="img" aria-label="经历与关键词连接图"></svg>
+      </div>
+      <div class="graph-info" id="expGraphInfo">悬停主题或编号，查看关联经历。</div>
+      <div class="graph-legend-list" id="expLegend"></div>
+    </div>
+    <div class="exp-list" id="expList"></div>
+  </section>
+
+  <!-- ===== Per-job match view ===== -->
+  <section id="view-match" class="view">
+    <div id="matchContent"></div>
+  </section>
+
+  <!-- ===== Methodology view ===== -->
+  <section id="view-method" class="view">
+    <div class="method" id="methodContent"></div>
+  </section>
+</main>
+
+<!-- ===== Detail drawer ===== -->
+<div class="drawer-overlay" id="drawerOverlay" hidden></div>
+<aside class="drawer" id="drawer" hidden aria-label="岗位详情">
+  <div class="drawer-top">
+    <button class="icon-btn" id="drawerClose" aria-label="关闭">✕</button>
+    <div class="drawer-nav">
+      <button class="icon-btn" id="prevJob" aria-label="上一个">‹</button>
+      <button class="icon-btn" id="nextJob" aria-label="下一个">›</button>
+    </div>
+  </div>
+  <div class="drawer-body" id="drawerBody"></div>
+</aside>
+
+<div class="toast" id="toast" hidden></div>
+<div class="filter-backdrop" id="filterBackdrop" hidden></div>
+
+<script src="data/jobs.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>
